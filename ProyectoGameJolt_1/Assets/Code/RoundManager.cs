@@ -4,20 +4,22 @@ using UnityEngine.Events;
 public class RoundManager : MonoBehaviour
 {
     [Header("Configuración de Rondas")]
-    public int currentRound = 1;                        
-    public int enemiesKilledThisRound = 0;              
-    public int totalEnemiesKilled = 0;                  
-    public int enemiesRequiredToAdvance = 5;            
-    public int enemiesIncreasePerRound = 2;             
+    public int currentRound = 1;
+    public int enemiesKilledThisRound = 0;
+    public int totalEnemiesKilled = 0;
+    public int enemiesRequiredToAdvance = 5;
+    public int enemiesIncreasePerRound = 2;
+    public float restTimeBetweenRounds = 5f; 
 
     [Header("Estado Actual")]
-    [SerializeField] private int currentRequirement;    
-    [SerializeField] private bool isRoundInProgress;    
+    [SerializeField] private int currentRequirement;
+    [SerializeField] private bool isRoundInProgress;
+    [SerializeField] private int aliveEnemiesCount = 0; 
 
-    [Header("Eventos (opcional)")]
-    public UnityEvent onRoundStart;                     
-    public UnityEvent onRoundComplete;                  
-    public UnityEvent<int> onNewRound; //Numero de nuevas rondas                  
+    [Header("Eventos")]
+    public UnityEvent onRoundStart;
+    public UnityEvent onRoundComplete;
+    public UnityEvent<int> onNewRound;           
 
     public static RoundManager Instance { get; private set; }
 
@@ -48,6 +50,7 @@ public class RoundManager : MonoBehaviour
             return;
 
         enemiesKilledThisRound = 0;
+        aliveEnemiesCount = 0;
 
         currentRequirement = CalculateRequirement(currentRound);
 
@@ -59,6 +62,12 @@ public class RoundManager : MonoBehaviour
         Debug.Log($"¡Ronda {currentRound} iniciada! Mata {currentRequirement} enemigos para avanzar.");
     }
 
+    public void RegisterEnemySpawned()
+    {
+        aliveEnemiesCount++;
+        Debug.Log($"Enemigo spawneado. Enemigos vivos: {aliveEnemiesCount}");
+    }
+
     public void RegisterEnemyKilled()
     {
         if (!isRoundInProgress)
@@ -67,12 +76,40 @@ public class RoundManager : MonoBehaviour
         enemiesKilledThisRound++;
         totalEnemiesKilled++;
 
-        Debug.Log($"Enemigo eliminado. {enemiesKilledThisRound}/{currentRequirement}");
+        if (aliveEnemiesCount > 0)
+        {
+            aliveEnemiesCount--;
+        }
+
+        Debug.Log($"Enemigo eliminado. Eliminados: {enemiesKilledThisRound}/{currentRequirement}, Vivos: {aliveEnemiesCount}");
 
         if (enemiesKilledThisRound >= currentRequirement)
         {
+            CheckRoundCompletion();
+        }
+    }
+
+    private void CheckRoundCompletion()
+    {
+        if (enemiesKilledThisRound >= currentRequirement && aliveEnemiesCount <= 0 && IsPlayerAlive())
+        {
             CompleteRound();
         }
+        else if (enemiesKilledThisRound >= currentRequirement && aliveEnemiesCount > 0)
+        {
+            Debug.Log($"Quedan {aliveEnemiesCount} enemigos vivos. Elimínalos para continuar.");
+        }
+    }
+
+    private bool IsPlayerAlive()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            Health playerHealth = player.GetComponent<Health>();
+            return playerHealth != null && playerHealth.IsAlive();
+        }
+        return false;
     }
 
     private void CompleteRound()
@@ -80,11 +117,11 @@ public class RoundManager : MonoBehaviour
         isRoundInProgress = false;
         currentRound++;
 
-        Debug.Log($"¡Ronda {currentRound - 1} completada! Avanzando a la ronda {currentRound}...");
+        Debug.Log($"¡Ronda {currentRound - 1} completada! Avanzando a la ronda {currentRound} en {restTimeBetweenRounds} segundos...");
 
         onRoundComplete?.Invoke();
 
-        Invoke("StartRound", 5f);
+        Invoke("StartRound", restTimeBetweenRounds);
     }
 
     private int CalculateRequirement(int round)
@@ -100,11 +137,22 @@ public class RoundManager : MonoBehaviour
         return (float)enemiesKilledThisRound / currentRequirement;
     }
 
+    public int GetAliveEnemiesCount()
+    {
+        return aliveEnemiesCount;
+    }
+
+    public bool IsRoundComplete()
+    {
+        return enemiesKilledThisRound >= currentRequirement && aliveEnemiesCount <= 0;
+    }
+
     public void ResetRounds()
     {
         currentRound = 1;
         enemiesKilledThisRound = 0;
         totalEnemiesKilled = 0;
+        aliveEnemiesCount = 0;
         isRoundInProgress = false;
 
         CancelInvoke("StartRound");

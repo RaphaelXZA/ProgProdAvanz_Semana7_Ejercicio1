@@ -466,14 +466,52 @@ MonoBehaviour:
   totalEnemiesKilled: 0
   enemiesRequiredToAdvance: 5
   enemiesIncreasePerRound: 2
+  restTimeBetweenRounds: 5
   currentRequirement: 0
   isRoundInProgress: 0
+  aliveEnemiesCount: 0
   onRoundStart:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1198816717}
+        m_TargetAssemblyTypeName: EnemySpawner, Assembly-CSharp
+        m_MethodName: ResetSpawner
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 1198816717}
+        m_TargetAssemblyTypeName: EnemySpawner, Assembly-CSharp
+        m_MethodName: StartSpawning
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   onRoundComplete:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1198816717}
+        m_TargetAssemblyTypeName: EnemySpawner, Assembly-CSharp
+        m_MethodName: StopSpawning
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   onNewRound:
     m_PersistentCalls:
       m_Calls: []
@@ -807,25 +845,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9524517c268ec0f498a4eb1fa95e4f16, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyData:
-  - enemyPrefab: {fileID: 7705387276872874384, guid: 3c554efb4ada3994585d848c8890d806, type: 3}
-    spawnProbability: 40
-    prefabName: 
-  - enemyPrefab: {fileID: 7141967793956589417, guid: e04cf8ec588db3c48881249a472ae439, type: 3}
-    spawnProbability: 30
-    prefabName: 
-  - enemyPrefab: {fileID: 8430601431205140853, guid: d5964344c46df36469388c718dc4203e, type: 3}
-    spawnProbability: 20
-    prefabName: 
-  - enemyPrefab: {fileID: 3928305114424832609, guid: 25a0d86d2a89ec04092d2031b24d30bb, type: 3}
-    spawnProbability: 10
-    prefabName: 
-  spawnInterval: 2
+  enemyPrefabs:
+  - prefab: {fileID: 7705387276872874384, guid: 3c554efb4ada3994585d848c8890d806, type: 3}
+    probability: 40
+  - prefab: {fileID: 7141967793956589417, guid: e04cf8ec588db3c48881249a472ae439, type: 3}
+    probability: 30
+  - prefab: {fileID: 8430601431205140853, guid: d5964344c46df36469388c718dc4203e, type: 3}
+    probability: 20
+  - prefab: {fileID: 3928305114424832609, guid: 25a0d86d2a89ec04092d2031b24d30bb, type: 3}
+    probability: 10
+  spawnInterval: 5
   startSpawningOnStart: 1
   currentFibonacciIndex: 0
   currentFibonacciValue: 1
-  enemiesSpawnedInBatch: 0
   isSpawning: 0
+  totalWavesSpawned: 0
   totalEnemiesSpawned: 0
   fibonacciSequence: 
 --- !u!4 &1198816718
