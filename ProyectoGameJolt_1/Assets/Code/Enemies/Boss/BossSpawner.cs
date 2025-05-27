@@ -12,6 +12,12 @@ public class BossSpawner : MonoBehaviour
     public int bossRoundInterval = 3;
     public float spawnDelay = 1f;
 
+    [Header("Progresión de Habilidades del Boss")]
+    [SerializeField] private int bossAppearanceCount = 0;
+    [SerializeField] private bool enableSingleShotOnAppearance = true;
+    [SerializeField] private bool enableDamageAbsorptionOnAppearance = true;
+    [SerializeField] private bool enableShotgunAttackOnAppearance = true;
+
     [Header("Estado")]
     [SerializeField] private bool bossSpawned = false;
     [SerializeField] private GameObject currentBoss = null;
@@ -142,10 +148,14 @@ public class BossSpawner : MonoBehaviour
             return;
         }
 
+        bossAppearanceCount++;
+
         currentBoss = Instantiate(bossPrefab, spawnPoint.position, spawnPoint.rotation);
 
         if (currentBoss != null)
         {
+            ConfigureBossAbilities(currentBoss);
+
             bossSpawned = true;
             lastBossRound = RoundManager.Instance.GetCurrentRound();
 
@@ -154,8 +164,9 @@ public class BossSpawner : MonoBehaviour
             BossHealth bossHealth = currentBoss.GetComponent<BossHealth>();
             if (bossHealth != null)
             {
-                Debug.Log($"¡JEFE APARECIDO! Ronda {lastBossRound} - Derrótalo para avanzar");
+                Debug.Log($"¡JEFE APARECIDO! Aparición #{bossAppearanceCount} - Ronda {lastBossRound}");
                 Debug.Log($"Boss spawneado con salud: {bossHealth.currentHealth}/{bossHealth.maxHealth}");
+                LogBossAbilities();
 
                 StartCoroutine(WaitAndCheckBossHealth(bossHealth));
             }
@@ -168,6 +179,64 @@ public class BossSpawner : MonoBehaviour
         else
         {
             Debug.LogError("No se pudo instanciar el boss");
+        }
+    }
+
+    private void ConfigureBossAbilities(GameObject boss)
+    {
+        Boss bossComponent = boss.GetComponent<Boss>();
+        if (bossComponent == null)
+        {
+            Debug.LogError("El boss prefab no tiene componente Boss!");
+            return;
+        }
+
+        switch (bossAppearanceCount)
+        {
+            case 1:
+                bossComponent.enableSingleShot = false;
+                bossComponent.enableDamageAbsorption = false;
+                bossComponent.enableShotgunAttack = false;
+                break;
+
+            case 2:
+                bossComponent.enableSingleShot = enableSingleShotOnAppearance;
+                bossComponent.enableDamageAbsorption = false;
+                bossComponent.enableShotgunAttack = false;
+                break;
+
+            case 3:
+                bossComponent.enableSingleShot = enableSingleShotOnAppearance;
+                bossComponent.enableDamageAbsorption = enableDamageAbsorptionOnAppearance;
+                bossComponent.enableShotgunAttack = false;
+                break;
+
+            default:
+                bossComponent.enableSingleShot = enableSingleShotOnAppearance;
+                bossComponent.enableDamageAbsorption = enableDamageAbsorptionOnAppearance;
+                bossComponent.enableShotgunAttack = enableShotgunAttackOnAppearance;
+                break;
+        }
+
+        Debug.Log($"Boss configurado para aparición #{bossAppearanceCount}");
+    }
+
+    private void LogBossAbilities()
+    {
+        Boss bossComponent = currentBoss.GetComponent<Boss>();
+        if (bossComponent != null)
+        {
+            string abilities = "Habilidades activas: ";
+            if (bossComponent.enableSingleShot) abilities += "Disparo Simple ";
+            if (bossComponent.enableDamageAbsorption) abilities += "Absorción de Daño ";
+            if (bossComponent.enableShotgunAttack) abilities += "Ataque Escopeta ";
+
+            if (!bossComponent.enableSingleShot && !bossComponent.enableDamageAbsorption && !bossComponent.enableShotgunAttack)
+            {
+                abilities += "Ninguna (Solo ataque cuerpo a cuerpo)";
+            }
+
+            Debug.Log(abilities);
         }
     }
 
@@ -217,7 +286,7 @@ public class BossSpawner : MonoBehaviour
 
     private void OnBossDied()
     {
-        Debug.Log("¡JEFE DERROTADO! La ronda puede continuar");
+        Debug.Log($"¡JEFE DERROTADO! (Aparición #{bossAppearanceCount}) La ronda puede continuar");
 
         bossSpawned = false;
         currentBoss = null;
@@ -230,7 +299,6 @@ public class BossSpawner : MonoBehaviour
         {
             StartCoroutine(ForceRoundCompletionCheck());
         }
-
     }
 
     private IEnumerator ForceRoundCompletionCheck()
@@ -338,6 +406,17 @@ public class BossSpawner : MonoBehaviour
         }
     }
 
+    public int GetBossAppearanceCount()
+    {
+        return bossAppearanceCount;
+    }
+
+    public void ResetBossAppearanceCount()
+    {
+        bossAppearanceCount = 0;
+        Debug.Log("Contador de apariciones del boss reseteado");
+    }
+
     public string GetStatusInfo()
     {
         if (RoundManager.Instance == null)
@@ -346,19 +425,19 @@ public class BossSpawner : MonoBehaviour
         int currentRound = RoundManager.Instance.GetCurrentRound();
 
         if (bossSpawned)
-            return $"Boss activo en ronda {currentRound}";
+            return $"Boss activo en ronda {currentRound} (Aparición #{bossAppearanceCount})";
 
         if (waitingToSpawnBoss)
-            return $"Boss apareciendo en ronda {currentRound}...";
+            return $"Boss apareciendo en ronda {currentRound}... (Será aparición #{bossAppearanceCount + 1})";
 
         if (ShouldSpawnBossThisRound(currentRound))
         {
             float progress = RoundManager.Instance.GetRoundProgress();
             int aliveEnemies = RoundManager.Instance.GetAliveEnemiesCount();
-            return $"Ronda de boss {currentRound} - Progreso: {progress:F1}% - Enemigos: {aliveEnemies}";
+            return $"Ronda de boss {currentRound} - Progreso: {progress:F1}% - Enemigos: {aliveEnemies} (Será aparición #{bossAppearanceCount + 1})";
         }
 
-        return $"Ronda normal {currentRound}";
+        return $"Ronda normal {currentRound} (Próxima aparición del boss será #{bossAppearanceCount + 1})";
     }
 
     private void OnDestroy()
