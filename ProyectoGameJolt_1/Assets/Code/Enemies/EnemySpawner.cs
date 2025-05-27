@@ -120,7 +120,6 @@ public class EnemySpawner : MonoBehaviour
         {
             if (wavesSpawnedThisRound >= currentRoundWavesLimit)
             {
-                Debug.Log($"Límite de oleadas alcanzado para esta ronda: {wavesSpawnedThisRound}/{currentRoundWavesLimit}");
                 StopSpawning();
                 yield break;
             }

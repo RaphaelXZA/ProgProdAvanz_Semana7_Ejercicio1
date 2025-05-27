@@ -102,6 +102,11 @@ public class RoundManager : MonoBehaviour
     {
         if (enemiesKilledThisRound >= currentRequirement && aliveEnemiesCount <= 0 && IsPlayerAlive())
         {
+            if (BossSpawner.Instance != null && !BossSpawner.Instance.CanRoundComplete(currentRound))
+            {
+                return; 
+            }
+
             CompleteRound();
         }
     }
@@ -130,6 +135,11 @@ public class RoundManager : MonoBehaviour
         onRoundComplete?.Invoke();
 
         Invoke("StartRound", restTimeBetweenRounds);
+    }
+
+    public void ForceCheckRoundCompletion()
+    {
+        CheckRoundCompletion();
     }
 
     private int CalculateRequirement(int round)
@@ -183,6 +193,4 @@ public class RoundManager : MonoBehaviour
     {
         return gameTimeActive;
     }
-
-    // Ya no necesitamos ResetRounds() porque simplemente cargamos la escena nueva
 }

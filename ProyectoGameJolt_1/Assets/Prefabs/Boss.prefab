@@ -455,7 +455,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 2000
-  currentHealth: 0
+  currentHealth: 2000
   flashDuration: 0.1
   destroyOnDeath: 1
   destroyDelay: 0

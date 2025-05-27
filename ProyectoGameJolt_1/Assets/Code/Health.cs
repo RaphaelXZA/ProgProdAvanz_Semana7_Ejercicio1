@@ -23,13 +23,7 @@ public abstract class Health : MonoBehaviour
         originalMaterials = new Material[renderers.Length];
         for (int i = 0; i < renderers.Length; i++)
         {
-            // CRÍTICO: Usar sharedMaterial para no crear instancias
             originalMaterials[i] = renderers[i].sharedMaterial;
-        }
-
-        if (flashMaterial == null)
-        {
-            Debug.Log("Falta asignar material para el efecto flash de daño");
         }
     }
 

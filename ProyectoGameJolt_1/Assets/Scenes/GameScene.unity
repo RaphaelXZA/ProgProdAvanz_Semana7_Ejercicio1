@@ -947,13 +947,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bossPrefab: {fileID: 5224706752523711013, guid: 036168ee7fd786343b963091672094be, type: 3}
-  spawnPoint: {fileID: 1043297673}
-  isBossActive: 0
-  isWaitingForBossSpawn: 0
-  bossEncounterCount: 0
-  currentBossInstance: {fileID: 0}
-  lastCheckedRound: 0
-  lastRoundWasMultipleOf3: 0
+  spawnPoint: {fileID: 0}
+  bossRoundInterval: 3
+  spawnDelay: 1
+  bossSpawned: 0
+  currentBoss: {fileID: 0}
+  lastBossRound: 0
+  waitingToSpawnBoss: 0
+  roundRequirementsCompleted: 0
 --- !u!4 &1043297673
 Transform:
   m_ObjectHideFlags: 0
@@ -2265,13 +2266,13 @@ SceneRoots:
   - {fileID: 1347074010}
   - {fileID: 655909859}
   - {fileID: 1164314365}
-  - {fileID: 6691240002609499579}
   - {fileID: 2054086327}
   - {fileID: 835218322}
   - {fileID: 2034283011}
   - {fileID: 658452448}
-  - {fileID: 1198816718}
   - {fileID: 1610154379}
   - {fileID: 841982577}
   - {fileID: 1792020341}
+  - {fileID: 1198816718}
   - {fileID: 1043297673}
+  - {fileID: 6691240002609499579}
