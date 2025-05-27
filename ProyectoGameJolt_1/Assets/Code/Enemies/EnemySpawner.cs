@@ -14,7 +14,12 @@ public class EnemySpawner : MonoBehaviour
 {
     public List<EnemyPrefabData> enemyPrefabs = new List<EnemyPrefabData>();
     public float spawnInterval = 3f;
-    public bool startSpawningOnStart = false;      
+    public bool startSpawningOnStart = false;
+
+    [Header("Configuración de Oleadas por Ronda")]
+    [SerializeField] private int wavesPerRoundIncrease = 2;
+    [SerializeField] private int currentRoundWavesLimit = 0;
+    [SerializeField] private int wavesSpawnedThisRound = 0;
 
     [SerializeField] private int currentFibonacciIndex = 0;
     [SerializeField] private int currentFibonacciValue = 1;
@@ -30,6 +35,7 @@ public class EnemySpawner : MonoBehaviour
     void Start()
     {
         InitializeFibonacci();
+        CalculateCurrentRoundWavesLimit();
 
         if (startSpawningOnStart)
         {
@@ -58,6 +64,18 @@ public class EnemySpawner : MonoBehaviour
         currentFibonacciValue = fibonacciSequence[currentFibonacciIndex];
     }
 
+    void CalculateCurrentRoundWavesLimit()
+    {
+        int currentRound = 1;
+        if (RoundManager.Instance != null)
+        {
+            currentRound = RoundManager.Instance.GetCurrentRound();
+        }
+
+        currentRoundWavesLimit = wavesPerRoundIncrease + currentRound;
+        wavesSpawnedThisRound = 0;
+    }
+
     int GetNextFibonacci()
     {
         currentFibonacciIndex++;
@@ -76,10 +94,10 @@ public class EnemySpawner : MonoBehaviour
         if (isSpawning || enemyPrefabs.Count == 0)
             return;
 
+        CalculateCurrentRoundWavesLimit();
+
         isSpawning = true;
         spawnCoroutine = StartCoroutine(SpawnRoutine());
-
-        Debug.Log($"Spawner iniciado. Primera oleada: {currentFibonacciValue} enemigos");
     }
 
     public void StopSpawning()
@@ -94,20 +112,24 @@ public class EnemySpawner : MonoBehaviour
             StopCoroutine(spawnCoroutine);
             spawnCoroutine = null;
         }
-
-        Debug.Log("Spawner detenido");
     }
 
     IEnumerator SpawnRoutine()
     {
         while (isSpawning)
         {
+            if (wavesSpawnedThisRound >= currentRoundWavesLimit)
+            {
+                Debug.Log($"Límite de oleadas alcanzado para esta ronda: {wavesSpawnedThisRound}/{currentRoundWavesLimit}");
+                StopSpawning();
+                yield break;
+            }
+
             SpawnWave(currentFibonacciValue);
 
             totalWavesSpawned++;
             totalEnemiesSpawned += currentFibonacciValue;
-
-            Debug.Log($"Oleada {totalWavesSpawned}: {currentFibonacciValue} enemigos spawneados");
+            wavesSpawnedThisRound++;
 
             currentFibonacciValue = GetNextFibonacci();
 
@@ -127,7 +149,6 @@ public class EnemySpawner : MonoBehaviour
     {
         if (enemyPrefabs.Count == 0)
         {
-            Debug.LogWarning("No hay enemigos configurados para spawnear");
             return;
         }
 
@@ -142,7 +163,6 @@ public class EnemySpawner : MonoBehaviour
 
         if (totalProbability <= 0f)
         {
-            Debug.LogWarning("La suma total de probabilidades es 0 o negativa");
             return;
         }
 
@@ -179,35 +199,21 @@ public class EnemySpawner : MonoBehaviour
                 {
                     RoundManager.Instance.RegisterEnemySpawned();
                 }
-
-                Debug.LogWarning("Spawneado enemigo por defecto debido a error en probabilidades");
                 return;
             }
         }
     }
-
-    //POR SI ACASO: Reiniciar el spawner (volver a Fibonacci 1)
+    // Reiniciar el spawner completamente (volver a Fibonacci 1 y resetear contadores)
     public void ResetSpawner()
     {
         StopSpawning();
+        InitializeFibonacci();
 
-        currentFibonacciIndex = 1;
-        currentFibonacciValue = fibonacciSequence[currentFibonacciIndex];
         totalWavesSpawned = 0;
         totalEnemiesSpawned = 0;
+        wavesSpawnedThisRound = 0;
 
-        Debug.Log("Spawner reiniciado");
+        CalculateCurrentRoundWavesLimit();
     }
 
-    //POR SI ACASO: Spawnear manualmente
-    public void SpawnCurrentWave()
-    {
-        SpawnWave(currentFibonacciValue);
-        totalWavesSpawned++;
-        totalEnemiesSpawned += currentFibonacciValue;
-
-        Debug.Log($"Oleada manual: {currentFibonacciValue} enemigos spawneados");
-
-        currentFibonacciValue = GetNextFibonacci();
-    }
 }

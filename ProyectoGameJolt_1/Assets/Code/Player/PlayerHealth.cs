@@ -1,10 +1,14 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerHealth : Health
-{                    
-    public float invincibilityTime = 1.0f;        
-    public Image healthBar;                                              
+{
+    public float invincibilityTime = 1.0f;
+    public Image healthBar;
+
+    [Header("Configuración de Game Over")]
+    public string gameOverSceneName = "GameOverScene";
 
     private bool isInvincible = false;
 
@@ -29,8 +33,30 @@ public class PlayerHealth : Health
 
     protected override void Die()
     {
-        base.Die();
-        Debug.Log("Game Over");
+        Debug.Log("Game Over - Jugador muerto");
+
+        // Detener el tiempo del juego en RoundManager
+        if (RoundManager.Instance != null)
+        {
+            RoundManager.Instance.StopGameTime();
+
+            // Guardar los datos del juego antes de cambiar de escena
+            if (GameDataManager.Instance != null)
+            {
+                GameDataManager.Instance.SaveGameData(
+                    RoundManager.Instance.GetTotalGameTime(),
+                    RoundManager.Instance.GetCurrentRound(),
+                    RoundManager.Instance.GetTotalEnemiesKilled()
+                );
+            }
+        }
+        else
+        {
+            Debug.LogWarning("RoundManager.Instance no encontrado");
+        }
+
+        // Cambiar a la escena de Game Over
+        SceneManager.LoadScene(gameOverSceneName);
     }
 
     private System.Collections.IEnumerator TemporaryInvincibility()
@@ -56,11 +82,27 @@ public class PlayerHealth : Health
         isInvincible = false;
     }
 
-    private void UpdateUI()
+    public void UpdateUI()
     {
         if (healthBar != null)
         {
             healthBar.fillAmount = GetHealthPercent();
         }
+    }
+
+    // Este método ya no es necesario porque no reiniciamos en la misma escena
+    // Pero lo mantengo por compatibilidad
+    public void ResetHealth()
+    {
+        currentHealth = maxHealth;
+        UpdateUI();
+
+        // Asegurarse de que los renderers estén visibles
+        foreach (Renderer renderer in renderers)
+        {
+            renderer.enabled = true;
+        }
+
+        isInvincible = false;
     }
 }

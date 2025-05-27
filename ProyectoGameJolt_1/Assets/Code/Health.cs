@@ -23,7 +23,8 @@ public abstract class Health : MonoBehaviour
         originalMaterials = new Material[renderers.Length];
         for (int i = 0; i < renderers.Length; i++)
         {
-            originalMaterials[i] = renderers[i].material;
+            // CRÍTICO: Usar sharedMaterial para no crear instancias
+            originalMaterials[i] = renderers[i].sharedMaterial;
         }
 
         if (flashMaterial == null)
@@ -90,5 +91,29 @@ public abstract class Health : MonoBehaviour
     public float GetHealthPercent()
     {
         return currentHealth / maxHealth;
+    }
+
+    // Método virtual para restaurar completamente el estado de salud
+    // Las clases derivadas pueden sobrescribirlo para restauración específica
+    public virtual void RestoreToFullHealth()
+    {
+        currentHealth = maxHealth;
+
+        // Detener cualquier efecto de flash
+        StopAllCoroutines();
+        isFlashing = false;
+
+        // Restaurar materiales originales
+        if (originalMaterials != null && renderers != null)
+        {
+            for (int i = 0; i < renderers.Length && i < originalMaterials.Length; i++)
+            {
+                if (renderers[i] != null && originalMaterials[i] != null)
+                {
+                    renderers[i].material = originalMaterials[i];
+                    renderers[i].enabled = true;
+                }
+            }
+        }
     }
 }

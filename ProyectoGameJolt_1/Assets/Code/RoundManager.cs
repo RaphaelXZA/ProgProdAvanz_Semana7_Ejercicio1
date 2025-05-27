@@ -9,17 +9,22 @@ public class RoundManager : MonoBehaviour
     public int totalEnemiesKilled = 0;
     public int enemiesRequiredToAdvance = 5;
     public int enemiesIncreasePerRound = 2;
-    public float restTimeBetweenRounds = 5f; 
+    public float restTimeBetweenRounds = 5f;
 
     [Header("Estado Actual")]
     [SerializeField] private int currentRequirement;
     [SerializeField] private bool isRoundInProgress;
-    [SerializeField] private int aliveEnemiesCount = 0; 
+    [SerializeField] private int aliveEnemiesCount = 0;
+
+    [Header("Tiempo de Partida")]
+    [SerializeField] private float gameStartTime;
+    [SerializeField] private float totalGameTime;
+    [SerializeField] private bool gameTimeActive = false;
 
     [Header("Eventos")]
     public UnityEvent onRoundStart;
     public UnityEvent onRoundComplete;
-    public UnityEvent<int> onNewRound;           
+    public UnityEvent<int> onNewRound;
 
     public static RoundManager Instance { get; private set; }
 
@@ -28,7 +33,6 @@ public class RoundManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -40,8 +44,18 @@ public class RoundManager : MonoBehaviour
     {
         currentRequirement = CalculateRequirement(currentRound);
         isRoundInProgress = false;
+        gameStartTime = Time.time;
+        gameTimeActive = true;
 
         Invoke("StartRound", 2f);
+    }
+
+    private void Update()
+    {
+        if (gameTimeActive)
+        {
+            totalGameTime = Time.time - gameStartTime;
+        }
     }
 
     public void StartRound()
@@ -58,14 +72,11 @@ public class RoundManager : MonoBehaviour
 
         onRoundStart?.Invoke();
         onNewRound?.Invoke(currentRound);
-
-        Debug.Log($"¡Ronda {currentRound} iniciada! Mata {currentRequirement} enemigos para avanzar.");
     }
 
     public void RegisterEnemySpawned()
     {
         aliveEnemiesCount++;
-        Debug.Log($"Enemigo spawneado. Enemigos vivos: {aliveEnemiesCount}");
     }
 
     public void RegisterEnemyKilled()
@@ -81,8 +92,6 @@ public class RoundManager : MonoBehaviour
             aliveEnemiesCount--;
         }
 
-        Debug.Log($"Enemigo eliminado. Eliminados: {enemiesKilledThisRound}/{currentRequirement}, Vivos: {aliveEnemiesCount}");
-
         if (enemiesKilledThisRound >= currentRequirement)
         {
             CheckRoundCompletion();
@@ -94,10 +103,6 @@ public class RoundManager : MonoBehaviour
         if (enemiesKilledThisRound >= currentRequirement && aliveEnemiesCount <= 0 && IsPlayerAlive())
         {
             CompleteRound();
-        }
-        else if (enemiesKilledThisRound >= currentRequirement && aliveEnemiesCount > 0)
-        {
-            Debug.Log($"Quedan {aliveEnemiesCount} enemigos vivos. Elimínalos para continuar.");
         }
     }
 
@@ -112,12 +117,15 @@ public class RoundManager : MonoBehaviour
         return false;
     }
 
+    public void StopGameTime()
+    {
+        gameTimeActive = false;
+    }
+
     private void CompleteRound()
     {
         isRoundInProgress = false;
         currentRound++;
-
-        Debug.Log($"¡Ronda {currentRound - 1} completada! Avanzando a la ronda {currentRound} en {restTimeBetweenRounds} segundos...");
 
         onRoundComplete?.Invoke();
 
@@ -147,15 +155,34 @@ public class RoundManager : MonoBehaviour
         return enemiesKilledThisRound >= currentRequirement && aliveEnemiesCount <= 0;
     }
 
-    public void ResetRounds()
+    public string GetFormattedGameTime()
     {
-        currentRound = 1;
-        enemiesKilledThisRound = 0;
-        totalEnemiesKilled = 0;
-        aliveEnemiesCount = 0;
-        isRoundInProgress = false;
+        int hours = Mathf.FloorToInt(totalGameTime / 3600f);
+        int minutes = Mathf.FloorToInt((totalGameTime % 3600f) / 60f);
+        int seconds = Mathf.FloorToInt(totalGameTime % 60f);
 
-        CancelInvoke("StartRound");
-        Invoke("StartRound", 2f);
+        return string.Format("{0:00}:{1:00}:{2:00}", hours, minutes, seconds);
     }
+
+    public int GetCurrentRound()
+    {
+        return currentRound;
+    }
+
+    public int GetTotalEnemiesKilled()
+    {
+        return totalEnemiesKilled;
+    }
+
+    public float GetTotalGameTime()
+    {
+        return totalGameTime;
+    }
+
+    public bool IsGameTimeActive()
+    {
+        return gameTimeActive;
+    }
+
+    // Ya no necesitamos ResetRounds() porque simplemente cargamos la escena nueva
 }
