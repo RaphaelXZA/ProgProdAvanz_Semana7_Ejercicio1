@@ -229,6 +229,11 @@ namespace GameJolt.API {
 				}, false);
 			}
 		}
-		#endregion GetTables
-	}
+
+        public static void Add(int totalKills, string extraData, int totalKillsTableId, Action<bool> value)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion GetTables
+    }
 }
