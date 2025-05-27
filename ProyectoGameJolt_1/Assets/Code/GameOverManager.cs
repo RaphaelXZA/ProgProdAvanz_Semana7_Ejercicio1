@@ -121,7 +121,7 @@ public class GameOverManager : MonoBehaviour
         int timeInSeconds = Mathf.FloorToInt(totalGameTime);
 
         string timeFormatted = GameDataManager.Instance.GetFormattedGameTime();
-        string extraData = $"Ronda alcanzada: {GameDataManager.Instance.GetFinalRound()} - Tiempo sobrevivido: {timeFormatted}";
+        string extraData = $"Tiempo sobrevivido: {timeFormatted}";
 
         try
         {
@@ -143,7 +143,7 @@ public class GameOverManager : MonoBehaviour
         int totalKills = GameDataManager.Instance.GetTotalKills();
 
         string timeFormatted = GameDataManager.Instance.GetFormattedGameTime();
-        string extraData = $"Ronda alcanzada: {GameDataManager.Instance.GetFinalRound()} - Enemigos eliminados: {totalKills}";
+        string extraData = $"Enemigos eliminados: {totalKills}";
 
         try
         {
