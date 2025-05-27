@@ -92,6 +92,13 @@ public class RoundManager : MonoBehaviour
             aliveEnemiesCount--;
         }
 
+        
+        //VERIFICAR TROFEO
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.CheckKill30Trophy(totalEnemiesKilled);
+        }
+
         if (enemiesKilledThisRound >= currentRequirement)
         {
             CheckRoundCompletion();
@@ -131,6 +138,21 @@ public class RoundManager : MonoBehaviour
     {
         isRoundInProgress = false;
         currentRound++;
+
+        //VERIFICAR TROFEO
+        if (TrophyManager.Instance != null && currentRound >= 5)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                Health playerHealth = player.GetComponent<Health>();
+                if (playerHealth != null)
+                {
+                    bool hasFullHealth = playerHealth.currentHealth >= playerHealth.maxHealth;
+                    TrophyManager.Instance.CheckRound5FullHealthTrophy(currentRound, hasFullHealth);
+                }
+            }
+        }
 
         onRoundComplete?.Invoke();
 

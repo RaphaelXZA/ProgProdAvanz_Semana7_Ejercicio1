@@ -288,6 +288,13 @@ public class BossSpawner : MonoBehaviour
     {
         Debug.Log($"¡JEFE DERROTADO! (Aparición #{bossAppearanceCount}) La ronda puede continuar");
 
+        
+        //VERIFICAR TROFEO
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.UnlockBossKillTrophy();
+        }
+
         bossSpawned = false;
         currentBoss = null;
         roundRequirementsCompleted = false;

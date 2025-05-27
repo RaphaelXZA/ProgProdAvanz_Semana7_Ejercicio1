@@ -24,7 +24,10 @@ public class MainMenuManager : MonoBehaviour
     }
     void Start()
     {
-        Trophies.Unlock(267754);
+        if (TrophyManager.Instance != null)
+        {
+            TrophyManager.Instance.UnlockLoginTrophy();
+        }
     }
 
     public void StartGame()
